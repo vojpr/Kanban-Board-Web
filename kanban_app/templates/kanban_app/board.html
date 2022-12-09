@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% load custom_templates %}
+
+{% block content %}
+
+<body id="kanban">
+    <!-- Navbar-->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top navbar-fixed-top" id="mainNav">
+        <div class="container px-4 px-lg-5">
+            <p class="navbar-brand nav-text">{{ user }}'s kanban board</p>
+            <div id="navbarResponsive">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link nav-text" href="{% url 'logout' %}">Log out</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Add task-->
+    <div class="form-box">
+        <form class="task-form" method="POST" action="{% url 'add_task' %}">
+            {% csrf_token %}
+            <div class="input-box">
+                <input class="task-input" type="text" name="new-task" placeholder="Write your task here" autocomplete="off" required>
+            </div>
+            <button class="btn" type="submit">Add to Kanban</button>
+        </form>
+    </div>
+    <!-- Kanban board-->
+    <div id="board" class="board-container-inner">
+        <div id="to-do" class="column-container">
+            <h3>To-do</h3>
+            <div class="red-border-line"></div>
+            {% for task in to_do_tasks %}
+            <div class="task-container">
+                <div class="up-div">
+                    <form method="POST"
+                        action="{% url 'move_up' task_pk=task.pk previous_task_pk=to_do_tasks|prev_index:task %}">
+                        {% csrf_token %}
+                        <button class="button-up task-button {% if task == to_do_tasks|index:0 %}hidden{% endif %}"><i class="uil uil-angle-right-b"></i></button>
+                    </form>
+                </div>
+                <div class="left-text-right-div">
+                    <form class="align-btn-vertically">
+                        {% csrf_token %}
+                        <button class="button-left task-button hidden"><i class="uil uil-angle-left-b"></i></button>
+                    </form>
+                    <div class="task-text-div">
+                        <p class="task-text">{{ task.task_text }}</p>
+                    </div>
+                    <form class="align-btn-vertically" method="POST" action="{% url 'move_right' task_pk=task.pk %}">
+                        {% csrf_token %}
+                        <button class="button-right task-button"><i class="uil uil-angle-right-b"></i></button>
+                    </form>
+                </div>
+                <div class="delete-div">
+                    <form method="POST" action="{% url 'delete' task_pk=task.pk %}">
+                        {% csrf_token %}
+                        <button class="button-delete task-button"><i class="uil uil-times"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div id="in-progress" class="column-container">
+            <h3>In progress</h3>
+            <div class="orange-border-line"></div>
+            {% for task in in_progress_tasks %}
+            <div class="task-container">
+                <div class="up-div">
+                    <form method="POST"
+                        action="{% url 'move_up' task_pk=task.pk previous_task_pk=in_progress_tasks|prev_index:task %}">
+                        {% csrf_token %}
+                        <button
+                            class="button-up task-button {% if task == in_progress_tasks|index:0 %}hidden{% endif %}"><i class="uil uil-angle-right-b"></i></button>
+                    </form>
+                </div>
+                <div class="left-text-right-div">
+                    <form class="align-btn-vertically" method="POST" action="{% url 'move_left' task_pk=task.pk %}">
+                        {% csrf_token %}
+                        <button class="button-left task-button"><i class="uil uil-angle-left-b"></i></button>
+                    </form>
+                    <div class="task-text-div">
+                        <p class="task-text">{{ task.task_text }}</p>
+                    </div>
+                    <form class="align-btn-vertically" method="POST" action="{% url 'move_right' task_pk=task.pk %}">
+                        {% csrf_token %}
+                        <button class="button-right task-button"><i class="uil uil-angle-right-b"></i></button>
+                    </form>
+                </div>
+                <div class="delete-div">
+                    <form method="POST" action="{% url 'delete' task_pk=task.pk %}">
+                        {% csrf_token %}
+                        <button class="button-delete task-button"><i class="uil uil-times"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div id="done" class="column-container">
+            <h3>Done</h3>
+            <div class="green-border-line"></div>
+            {% for task in done_tasks %}
+            <div class="task-container">
+                <div class="up-div">
+                    <form method="POST"
+                        action="{% url 'move_up' task_pk=task.pk previous_task_pk=done_tasks|prev_index:task %}">
+                        {% csrf_token %}
+                        <button class="button-up task-button {% if task == done_tasks|index:0 %}hidden{% endif %}"><i class="uil uil-angle-right-b"></i></button>
+                    </form>
+                </div>
+                <div class="left-text-right-div">
+                    <form class="align-btn-vertically" method="POST" action="{% url 'move_left' task_pk=task.pk %}">
+                        {% csrf_token %}
+                        <button class="button-left task-button"><i class="uil uil-angle-left-b"></i></button>
+                    </form>
+                    <div class="task-text-div">
+                        <p class="task-text">{{ task.task_text }}</p>
+                    </div>
+                    <form class="align-btn-vertically">
+                        {% csrf_token %}
+                        <button class="button-right task-button hidden"><i class="uil uil-angle-right-b"></i></button>
+                    </form>
+                </div>
+                <div class="delete-div">
+                    <form method="POST" action="{% url 'delete' task_pk=task.pk %}">
+                        {% csrf_token %}
+                        <button class="button-delete task-button"><i class="uil uil-times"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Info messages before footer-->
+    <div class="before-footer">
+        <div class="screen-too-small">The screen is too small to display the Kanban board.<br>Please rotate your device or use a larger screen.</div>
+        <div class="screen-way-too-small">The screen is too small to display the Kanban board.<br>Please use a larger screen.</div>
+    </div>
+    <!-- Footer-->
+    <footer class="footer text-center">
+        <div class="footer-div">Copyright &copy;
+            <script>document.write(new Date().getFullYear())</script> by&nbsp<a href="https://www.vojtech.work/" target="_blank">vojtech</a>
+        </div>
+    </footer>
+
+    {% endblock content %}
