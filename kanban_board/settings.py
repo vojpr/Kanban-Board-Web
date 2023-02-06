@@ -29,8 +29,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'kanban-online.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'kanban-online.herokuapp.com', '*.fly.dev']
 
+CSRF_TRUSTED_ORIGINS = ["https://*.fly.dev"]
 
 # Application definition
 
@@ -93,7 +94,7 @@ DATABASES = {
         'NAME': os.environ.get('DATABASE_NAME'),
         'USER': os.environ.get('DATABASE_USER'),
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
-        'HOST': 'ec2-54-228-218-84.eu-west-1.compute.amazonaws.com',
+        'HOST': os.environ.get('DATABASE_HOST'),
         'PORT': '5432',
     }
 }
