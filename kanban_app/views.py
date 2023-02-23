@@ -1,14 +1,14 @@
-from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, View
 from .forms import SignUpForm
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.decorators import login_required
-from .models import Column
-from .models import Column, Task
-import datetime
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import Task
+from django.http import JsonResponse
+import json
 
 
-def index_page_view(request):
+def index_page(request):
     signup_form = SignUpForm()
     error_message = False
     if request.method == "POST":
@@ -25,7 +25,6 @@ def index_page_view(request):
         if request.POST.get("submit") == "login_form":
             login_name = request.POST["login_name"]
             login_pass = request.POST["login_pass"]
-            print(login_name)
             user = authenticate(
                 request, username=login_name, password=login_pass)
             if user is not None:
@@ -40,67 +39,55 @@ def index_page_view(request):
     return render(request, 'index.html', context)
 
 
-@login_required(login_url='/')
-def board_view(request):
-    columns = Column.objects.filter(user=request.user).all()
-    to_do_tasks = Task.objects.filter(
-        parent_column=columns[0]).order_by('time_stamp').all()
-    in_progress_tasks = Task.objects.filter(
-        parent_column=columns[1]).order_by('time_stamp').all()
-    done_tasks = Task.objects.filter(
-        parent_column=columns[2]).order_by('time_stamp').all()
-    context = {
-        "to_do_tasks": to_do_tasks,
-        "in_progress_tasks": in_progress_tasks,
-        "done_tasks": done_tasks,
-    }
-    return render(request, 'kanban_app/board.html', context)
+class Board(LoginRequiredMixin, ListView):
+    model = Task
+    template_name = 'kanban_app/board.html'
+    context_object_name = "tasks"
+    login_url = '/'
+
+    def get_queryset(self):
+        queryset = super(LoginRequiredMixin, self).get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
-@login_required
-def add_task(request):
-    columns = Column.objects.filter(user=request.user).all()
-    new_task = Task(parent_column=columns[0],
-                    task_text=request.POST["new-task"])
-    new_task.save()
-    return redirect(reverse('board'))
+class CreateTask(LoginRequiredMixin, View):
+    login_url = '/'
 
+    def get(self, request):
+        new_task_text = request.GET.get("new-task", None)
+        new_task = Task.objects.create(user=self.request.user, column_name="To-do", task_text=new_task_text)
+        new_task_data = {
+            "text": new_task.task_text, "pk": new_task.pk
+        }
+        data = {
+            "task": new_task_data
+        }
+        return JsonResponse(data)
+    
 
-@login_required
-def move_up(request, task_pk, previous_task_pk):
-    lower_task = Task.objects.get(pk=task_pk)
-    lower_task_time_stamp = lower_task.time_stamp
-    upper_task = Task.objects.get(pk=previous_task_pk)
-    upper_task_time_stamp = upper_task.time_stamp
-    lower_task.time_stamp = upper_task_time_stamp
-    lower_task.save()
-    upper_task.time_stamp = lower_task_time_stamp
-    upper_task.save()
-    return redirect(reverse('board'))
+class DeleteTask(LoginRequiredMixin, View):
+    login_url = '/'
 
+    def  get(self, request):
+        pk = request.GET.get('pk', None)
+        Task.objects.get(pk=pk).delete()
+        data = {
+            'deleted': True
+        }
+        return JsonResponse(data)
+    
 
-@login_required
-def move_left(request, task_pk):
-    task_to_move = Task.objects.get(pk=task_pk)
-    new_column = Column.objects.get(pk=task_to_move.parent_column.pk - 1)
-    task_to_move.parent_column = new_column
-    task_to_move.time_stamp = datetime.datetime.now()
-    task_to_move.save()
-    return redirect(reverse('board'))
+class ReorderTask(LoginRequiredMixin, View):
+    login_url = '/'
 
-
-@login_required
-def move_right(request, task_pk):
-    task_to_move = Task.objects.get(pk=task_pk)
-    new_column = Column.objects.get(pk=task_to_move.parent_column.pk + 1)
-    task_to_move.parent_column = new_column
-    task_to_move.time_stamp = datetime.datetime.now()
-    task_to_move.save()
-    return redirect(reverse('board'))
-
-
-@login_required
-def delete(request, task_pk):
-    task_to_delete = Task.objects.get(pk=task_pk)
-    task_to_delete.delete()
-    return redirect(reverse('board'))
+    def get(self, request):
+        tasks = json.loads(request.GET.get('sort'))
+        for task in tasks:
+            task_obj = get_object_or_404(Task, pk=int(task['pk']))
+            task_obj.order = task['order']
+            task_obj.column_name = task['column_name']
+            task_obj.save()
+        data = {
+            'reordered': True
+        }
+        return JsonResponse(data)

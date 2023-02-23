@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Column, Task
+from .models import Task
 
-myModels = [Column, Task]
+myModels = [Task]
 admin.site.register(myModels)
