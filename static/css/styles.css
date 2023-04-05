@@ -196,12 +196,8 @@ transform: translateX(44px) rotate(-270deg);
     display: block;
 }
 
-.login_error_message {
-    color: red;
-    font-size: 16px;
-    margin-top: 2rem !important;
-    margin-bottom: 0rem !important;
-    line-height: 0.7 !important;
+.checkbox-label {
+    margin-bottom: 2rem !important;
 }
 
 .error_message {

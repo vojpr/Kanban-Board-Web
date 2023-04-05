@@ -18,16 +18,14 @@ def index_page(request):
                 signup_form.save()
                 signup_name = signup_form.cleaned_data['username']
                 signup_pass = signup_form.cleaned_data['password1']
-                user = authenticate(
-                    request, username=signup_name, password=signup_pass)
+                user = authenticate(request, username=signup_name, password=signup_pass)
                 login(request, user)
                 return redirect('board')
         if request.POST.get("submit") == "login_form":
             login_name = request.POST["login_name"]
             login_pass = request.POST["login_pass"]
-            user = authenticate(
-                request, username=login_name, password=login_pass)
-            if user is not None:
+            user = authenticate(request, username=login_name, password=login_pass)
+            if user:
                 login(request, user)
                 return redirect('board')
             else:

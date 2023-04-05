@@ -16,32 +16,27 @@
                 </div>
             </div>
         </header>
-        <!-- Log in/Sign up form-->
+        <!-- Forms -->
         <div class="section text-center">
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-12 text-center align-self-center pt-3">
                         <div class="section pb-5 pt-sm-2 text-center">
-                            <h6 class="mb-0 pb-3"><span>Log In </span><span>Sign Up</span></h6>
-                            {% if signup_form.errors %}
-                            <input class="checkbox" type="checkbox" id="reg-log" name="reg-log" checked/>
-                            <label for="reg-log" style="margin-bottom: 2rem"></label>
-                            {% else %}
-                            <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
-                            <label for="reg-log"></label>
-                            {% endif %}
+                            <h6 class="mb-0 pb-3"><span>Log In</span><span>Sign Up</span></h6>
+                            <input class="checkbox" type="checkbox" id="reg-log" name="reg-log" {% if signup_form.errors %}checked{% endif %}/>
+                            <label class="checkbox-label" for="reg-log"></label>
                             {% if signup_form.errors %}
                                 {% for field in signup_form %}
                                     {% for error in field.errors %}
                                         <p class="error_message">{{ error }}</p>
                                     {% endfor %}
                                 {% endfor %}
-                            {% endif %}
-                            {% if login_error %}
-                                <p class="login_error_message">Your username or password is incorrect</p>
+                            {% elif login_error %}
+                                <p class="error_message">Your username or password is incorrect</p>
                             {% endif %}
                             <div class="card-3d-wrap mx-auto">
                                 <div class="card-3d-wrapper">
+                                    <!-- Log in form-->
                                     <div class="card-front">
                                         <div class="center-wrap">
                                             <div class="section text-center">
@@ -61,6 +56,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Sign up form-->
                                     <div class="card-back">
                                         <div class="center-wrap">
                                             <div class="section text-center">
