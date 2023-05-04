@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, View
-from .forms import SignUpForm
-from django.contrib.auth import login, authenticate
+from .forms import SignUpForm, LoginForm
+from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Task
 from django.http import JsonResponse
@@ -10,29 +10,21 @@ import json
 
 def index_page(request):
     signup_form = SignUpForm()
-    error_message = False
+    login_form = LoginForm()
     if request.method == "POST":
         if request.POST.get("submit") == "signup_form":
             signup_form = SignUpForm(request.POST)
             if signup_form.is_valid():
-                signup_form.save()
-                signup_name = signup_form.cleaned_data['username']
-                signup_pass = signup_form.cleaned_data['password1']
-                user = authenticate(request, username=signup_name, password=signup_pass)
-                login(request, user)
+                login(request, signup_form.save())
                 return redirect('board')
         if request.POST.get("submit") == "login_form":
-            login_name = request.POST["login_name"]
-            login_pass = request.POST["login_pass"]
-            user = authenticate(request, username=login_name, password=login_pass)
-            if user:
-                login(request, user)
+            login_form = LoginForm(request, request.POST)
+            if login_form.is_valid():
+                login(request, login_form.get_user())
                 return redirect('board')
-            else:
-                error_message = True
     context = {
         'signup_form': signup_form,
-        'login_error': error_message
+        'login_form': login_form,
     }
     return render(request, 'index.html', context)
 
