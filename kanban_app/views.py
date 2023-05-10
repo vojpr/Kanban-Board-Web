@@ -50,6 +50,7 @@ class CreateTask(LoginRequiredMixin, View):
             "text": new_task.task_text, "pk": new_task.pk
         }
         data = {
+            "status": "success",
             "task": new_task_data
         }
         return JsonResponse(data)
@@ -62,7 +63,8 @@ class DeleteTask(LoginRequiredMixin, View):
         pk = request.GET.get('pk', None)
         Task.objects.get(pk=pk).delete()
         data = {
-            'deleted': True
+            "status": "success",
+            "deleted": True
         }
         return JsonResponse(data)
     
@@ -78,6 +80,7 @@ class ReorderTask(LoginRequiredMixin, View):
             task_obj.column_name = task['column_name']
             task_obj.save()
         data = {
-            'reordered': True
+            "status": "success",
+            "reordered": True
         }
         return JsonResponse(data)
